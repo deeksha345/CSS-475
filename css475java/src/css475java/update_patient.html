@@ -1,0 +1,121 @@
+<html>
+<head>
+<title>CSS 475 Sample</title>
+<link rel="stylesheet" href="base.css">
+<script src="base.js"></script>
+</head>
+<!-- This page is set up to perform database operation when initially loaded rather than on user response. The
+	onload event calls a function that starts the loading processing from code.  -->
+<body onload='onLoad();'>
+<!-- This is a common navigation base to call different web pages on the website -->
+<div class="topnav">
+  <a href="index.html">Home</a>
+  <a href="list_patients.html">List Patients</a>
+</div>
+<h1>CSS 475 Sample for Java</h1>
+<h2>Update Patient</h2>
+<!--  place holder for update messages -->
+<div id="message">&nbsp;</div>
+<br><br>
+<!--  place holder for database output  -->
+<div id="result">Please be patient...</div>
+</body>
+<script>
+/*
+ * onJavaLoaded - called by bootstrap loader for this application. If you want to retrieve any data
+ * when the page is first loaded, modify the code in this function to do it.
+ */
+function onJavaLoaded() {
+	 
+	/* get HTML element to update with ouput */
+	output = document.getElementById('result');
+	
+	/* get parameter passed on the URL with query string update_patient?id=<patientNumber> */
+	var id = getParameterByName('id');
+	if (typeof(id) === "undefined") {
+		window.href = 'list_patients.html';
+		return;
+	}
+	
+	/* call database to retrieve data  */
+	output.innerHTML = "calling..." + id;
+	data = app.getPatient(id);
+
+	/* parse results as JSON */
+	results = JSON.parse(data);
+	
+	/* check for database errors */
+	if (typeof(results.error) !== 'undefined') {
+		output.innerHTML = '<b>Error:</b><i>' + results.error + '</i>';
+	}
+	
+	/* parse output and update webpage */
+	else if (typeof(results.data) !== 'undefined') {
+		
+		/* create a form for updating the web */
+		var html = '<form name="UpdateForm" action="" method="get">';
+		for (i in results.data) {
+			row = results.data[i];
+			html += '<div><a href="show_patient.html?id=' + row.patientNumber + '">' + 
+				row.firstName + ' ' + row.lastName + '</a><br>' + row.phone + '<br>' + row.email 
+				+ '<br>' + row.streetAddress + '<br>' + row.cityName + ', ' + row.state + ', ' + 
+				row.country+ ' ' + row.zipCode + '</div>';
+		}
+		html += '<br><br>New Last Name: ';
+		html += '<input type="text" name="newName">';
+		
+		/* note that these buttons will call JavaScript functions on this page */
+		html += '&nbsp;&nbsp;<button type="button" onclick="updateDatabase(this.form);">Update</button>';
+		html += '&nbsp;&nbsp;<button type="button" onclick="onJavaLoaded();">Refresh</button>';
+		html += '</form>';
+		
+		/* update the webpage with the form */
+		output.innerHTML = html;
+	}
+	
+	/* deal with weird errors */
+	else {
+		output.innerHTML = '<b>Unexpected Error - No Output</b>';
+	}
+}
+ 
+/* updateDatabase - update the database with a new name */
+function updateDatabase(form) {
+	
+	/* get the patientNumber from parameter to the page */
+	var id = getParameterByName('id');
+	
+	/* get the message element in HTML */
+	message = document.getElementById('message');
+	message.innerHTML = "Updating " + id + " to '" + form.newName.value + "'";
+	
+	/* make sure the name is not blank */
+	if (typeof form.newName.value === "undefined") {
+		message.innerHTML = '<b>Specify a non-blank name</b>';
+	} else if (form.newName.value.trim() === "") {
+		message.innerHTML = '<b>Specify a non-blank name</b>';
+	}
+	
+	/* update the name in the database */
+	else {
+		
+		/* create a JSON string to send to function */
+		json = '{ "data": { "patientNumber": "'+ id + '", "lastName": "' + form.newName.value.trim() + '"}}'; 
+		
+		/* call Java to perform update */
+		data = app.updatePatient(json);
+		
+		/* check results and update message */
+		results = JSON.parse(data);
+		if (typeof(results.error) !== 'undefined') {
+			message.innerHTML = '<b>Error:</b><i>' + results.error + '</i>';
+		} else if (typeof(results.count) !== 'undefined') {
+			message.innerHTML = results.count + " rows updated";
+			onJavaLoaded();		
+		} else {
+			message.innerHTML = '<b>Unexpected Error - No Output</b>';
+		}
+	}
+}
+</script>
+</html>

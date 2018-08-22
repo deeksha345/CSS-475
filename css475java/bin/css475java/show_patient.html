@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>CSS 475 Sample</title>
+<link rel="stylesheet" href="base.css">
+<script src="base.js"></script>
+</head>
+<!-- This page is set up to perform database operation when initially loaded rather than on user response. The
+	onload event calls a function that starts the loading processing from code.  -->
+<body onload='onLoad();'>
+<!-- This is a common navigation base to call different web pages on the website -->
+<div class="topnav">
+  <a href="index.html">Home</a>
+  <a href="list_patients.html">List Patients</a>
+</div>
+<h1>CSS 475 Sample for Java</h1>
+<h2>Show Patient</h2>
+<!--  place holder for database output  -->
+<div id="result">Please be patient...</div>
+</body>
+<script>
+/*
+ * onJavaLoaded - called by bootstrap loader for this application. If you want to retrieve any data
+ * when the page is first loaded, modify the code in this function to do it.
+ */
+function onJavaLoaded() {
+	 
+	/* get HTML element to display output */
+	output = document.getElementById('result');
+	
+	/* get patientNumber to display */
+	var id = getParameterByName('id');
+	if (typeof(id) === "undefined") {
+		window.href = 'list_patients.html';
+		return;
+	}
+	
+	/* get the patient data */
+	output.innerHTML = "calling...";
+	data = app.getPatient(id);
+	
+	/* parse the returned JSON into javaScript objects */
+	results = JSON.parse(data);
+	
+	/* check for database errors */
+	if (typeof(results.error) !== 'undefined') {
+		output.innerHTML = '<b>Error:</b><i>' + results.error + '</i>';
+	}
+	
+	/* output the patient information */
+	else if (typeof(results.data) !== 'undefined') {
+		
+		/* generate HTML to output on page */
+		var html = '<div>';
+		for (i in results.data) {
+			row = results.data[i];
+			html += '<div><a href="show_patient.html?id=' + row.patientNumber + '">' + 
+				row.firstName + ' ' + row.lastName + '</a><br>' + row.phone + '<br>' + row.email 
+				+ '<br>' + row.streetAddress + '<br>' + row.cityName + ', ' + row.state + ', ' + 
+				row.country + ' ' + row.zipCode + '</div>';
+		}
+		html += '<br><div><a href="update_patient.html?id=' + id + '">Update Last Name</a></div>';
+		html += '</div>';
+		
+		/* update current page marker */
+		output.innerHTML = html;
+	}
+	
+	/* deal with weird errors */
+	else {
+		output.innerHTML = '<b>Unexpected Error - No Output</b>';
+	}
+}
+</script>
+</html>
