@@ -4,3 +4,5 @@ Course taken during summer quarter of 2017-2018 school year and was taught by Ma
 This repository contains the artifacts pertaining to the vaccine database we created step by step throughout the quarter. 
 It includes the object relation model and the logical data model. It also contains the miscrosoft access file for the physical database 
 and the code with the query implementation. 
+
+The CSS475 folder can be downloaded and run on eclipse photon to see the queries in action. 
